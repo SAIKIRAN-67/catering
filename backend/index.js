@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken"
 import bodyParser from "body-parser"
 import Razorpay from "razorpay"
 import crypto from "crypto"
+import paymentRoute from './routes/payment.route.js'
 
 
 dotenv.config();
@@ -74,7 +75,7 @@ app.post("/order/validate", (req, res) => {
 
 })
 
-
+app.use('/api', paymentRoute);
 
 
 

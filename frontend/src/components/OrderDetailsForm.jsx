@@ -6,6 +6,7 @@ import "./OrderDetailsForm.css";
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../fb';
 import Loader from './utils/Loader';
+import { load } from '@cashfreepayments/cashfree-js'
 import { useNavigate } from 'react-router-dom';
 
 const OrderDetailsForm = () => {
@@ -178,9 +179,78 @@ const OrderDetailsForm = () => {
     rzp1.open();
     e.preventDefault();
 
+    
+    
+  };
+  
+  let cashfree;
 
-};
+  let insitialzeSDK = async function () {
+    cashfree = await load({
+      mode: "sandbox",
+    });
+  };
 
+  insitialzeSDK();
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+  const [orderId, setOrderId] = useState("");
+  const [paymentVerified, isPaymentVerified] = useState(false);
+  const getSessionId = async () => {
+    try {
+      const requestData = {
+        order_amount: totalPayment,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: "webcodder01",
+          customer_phone: "9999999999",
+          customer_name: "Web Codder",
+          customer_email: "webcodder@example.com"
+        },
+      };
+      let res = await axios.post(`${BACKEND_URL}/api/payment`, requestData);
+
+      if (res.data && res.data.payment_session_id) {
+        console.log(res.data);
+        setOrderId(res.data.order_id);
+        return res.data.payment_session_id;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const verifyPayment = async () => {
+    try {
+      let res = await axios.post(`${BACKEND_URL}/api/verify`, {
+        orderId: orderId
+      });
+
+      if (res && res.data) {
+        isPaymentVerified(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    try {
+      let sessionId = await getSessionId();
+      let checkoutOptions = {
+        paymentSessionId: sessionId,
+        redirectTarget: "_modal",
+      };
+
+      cashfree.checkout(checkoutOptions).then((res) => {
+        console.log("payment initialized");
+        verifyPayment(orderId);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <div className="container">
       <div className="container-overlay"></div>
@@ -270,6 +340,11 @@ const OrderDetailsForm = () => {
                       <strong>Total Payment: ₹ {totalPayment} </strong>
                     </div>
                   </div>
+                </div>
+                <div className="form-group">                   
+                  <button type="button" onClick={handleClick} className="btn-pay">
+                  {paymentVerified ? "Paid" : "Pay Now"}
+                </button>
                 </div>
                 <div className="form-group">
                   <label htmlFor="formUtrRef"><b>Payment Details</b>(PhonePay Number:9642139494)</label>
