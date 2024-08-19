@@ -1,0 +1,6 @@
+PORT = "1001"
+ADMIN_EMAIL = "admin@gmail.com"
+ADMIN_PASSWORD= "admin!1234"
+JWT_SECRET = "secret#random#key"
+CLIENT_ID="TEST10274733a917c1b9acdc84ea1ead33747201"
+CLIENT_SECRET="cfsk_ma_test_c856b88e1ba2f9cbcdaa934fad3eb7f7_4b38bbf9"
